@@ -1,0 +1,131 @@
+resource_changes = {
+  "aws_instance.web": {
+    "address":       "aws_instance.web",
+    "type":          "aws_instance",
+    "name":          "web",
+    "provider_name": "registry.terraform.io/hashicorp/aws",
+    "change": {
+      "actions": ["create"],
+      "before":  null,
+      "after": {
+        "ami":           "ami-0c55b159cbfafe1f0",
+        "instance_type": "t3.micro",
+        "tags": {
+          "Environment": "prod",
+          "Project":     "payments",
+          "Team":        "platform-team",
+          "CostCenter":  "eng-001",
+          "ManagedBy":   "terraform",
+        },
+      },
+      "after_unknown": {},
+    },
+  },
+  "aws_db_instance.primary": {
+    "address":       "aws_db_instance.primary",
+    "type":          "aws_db_instance",
+    "name":          "primary",
+    "provider_name": "registry.terraform.io/hashicorp/aws",
+    "change": {
+      "actions": ["create"],
+      "before":  null,
+      "after": {
+        "engine":         "postgres",
+        "instance_class": "db.t3.micro",
+        "tags": {
+          "Environment": "prod",
+          "Project":     "payments",
+          "Team":        "platform-team",
+          "CostCenter":  "eng-001",
+          "ManagedBy":   "terraform",
+        },
+      },
+      "after_unknown": {},
+    },
+  },
+  "aws_s3_bucket.assets": {
+    "address":       "aws_s3_bucket.assets",
+    "type":          "aws_s3_bucket",
+    "name":          "assets",
+    "provider_name": "registry.terraform.io/hashicorp/aws",
+    "change": {
+      "actions": ["create"],
+      "before":  null,
+      "after": {
+        "bucket": "acme-prod-assets",
+        "tags": {
+          "Environment": "prod",
+          "Project":     "payments",
+          "Team":        "platform-team",
+          "CostCenter":  "eng-001",
+          "ManagedBy":   "terraform",
+        },
+      },
+      "after_unknown": {},
+    },
+  },
+  "aws_lambda_function.processor": {
+    "address":       "aws_lambda_function.processor",
+    "type":          "aws_lambda_function",
+    "name":          "processor",
+    "provider_name": "registry.terraform.io/hashicorp/aws",
+    "change": {
+      "actions": ["create"],
+      "before":  null,
+      "after": {
+        "function_name": "acme-prod-processor",
+        "runtime":       "nodejs20.x",
+        "tags": {
+          "Environment": "prod",
+          "Project":     "payments",
+          "Team":        "platform-team",
+          "CostCenter":  "eng-001",
+          "ManagedBy":   "terraform",
+        },
+      },
+      "after_unknown": {},
+    },
+  },
+  "aws_sqs_queue.jobs": {
+    "address":       "aws_sqs_queue.jobs",
+    "type":          "aws_sqs_queue",
+    "name":          "jobs",
+    "provider_name": "registry.terraform.io/hashicorp/aws",
+    "change": {
+      "actions": ["create"],
+      "before":  null,
+      "after": {
+        "name": "acme-prod-jobs",
+        "tags": {
+          "Environment": "prod",
+          "Project":     "payments",
+          "Team":        "platform-team",
+          "CostCenter":  "eng-001",
+          "ManagedBy":   "terraform",
+        },
+      },
+      "after_unknown": {},
+    },
+  },
+  "aws_vpc.main": {
+    "address":       "aws_vpc.main",
+    "type":          "aws_vpc",
+    "name":          "main",
+    "provider_name": "registry.terraform.io/hashicorp/aws",
+    "change": {
+      "actions": ["create"],
+      "before":  null,
+      "after": {
+        "cidr_block": "10.0.0.0/16",
+        "tags": {
+          "Environment": "prod",
+          "Project":     "payments",
+          "Team":        "platform-team",
+          "CostCenter":  "eng-001",
+          "ManagedBy":   "terraform",
+        },
+      },
+      "after_unknown": {},
+    },
+  },
+}

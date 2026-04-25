@@ -1,0 +1,80 @@
+resource_changes = {
+  "aws_instance.web": {
+    "address":       "aws_instance.web",
+    "type":          "aws_instance",
+    "name":          "web",
+    "provider_name": "registry.terraform.io/hashicorp/aws",
+    "change": {
+      "actions": ["create"],
+      "before":  null,
+      "after": {
+        "ami":           "ami-0c55b159cbfafe1f0",
+        "instance_type": "t3.micro",
+        "tags": {
+          "Environment": "prod",
+          "Project":     "payments",
+          "Team":        "platform-team",
+        },
+      },
+      "after_unknown": {},
+    },
+  },
+  "aws_s3_bucket.untagged": {
+    "address":       "aws_s3_bucket.untagged",
+    "type":          "aws_s3_bucket",
+    "name":          "untagged",
+    "provider_name": "registry.terraform.io/hashicorp/aws",
+    "change": {
+      "actions": ["create"],
+      "before":  null,
+      "after": {
+        "bucket": "acme-prod-untagged",
+      },
+      "after_unknown": {},
+    },
+  },
+  "aws_lambda_function.worker": {
+    "address":       "aws_lambda_function.worker",
+    "type":          "aws_lambda_function",
+    "name":          "worker",
+    "provider_name": "registry.terraform.io/hashicorp/aws",
+    "change": {
+      "actions": ["update"],
+      "before": {
+        "function_name": "acme-prod-worker",
+        "tags": {},
+      },
+      "after": {
+        "function_name": "acme-prod-worker",
+        "tags": {
+          "Environment": "prod",
+          "Project":     "payments",
+          "CostCenter":  "eng-001",
+          "ManagedBy":   "terraform",
+        },
+      },
+      "after_unknown": {},
+    },
+  },
+  "aws_sqs_queue.compliant": {
+    "address":       "aws_sqs_queue.compliant",
+    "type":          "aws_sqs_queue",
+    "name":          "compliant",
+    "provider_name": "registry.terraform.io/hashicorp/aws",
+    "change": {
+      "actions": ["create"],
+      "before":  null,
+      "after": {
+        "name": "acme-prod-compliant",
+        "tags": {
+          "Environment": "prod",
+          "Project":     "payments",
+          "Team":        "platform-team",
+          "CostCenter":  "eng-001",
+          "ManagedBy":   "terraform",
+        },
+      },
+      "after_unknown": {},
+    },
+  },
+}
