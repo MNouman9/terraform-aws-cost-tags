@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(chmod +x /mnt/f/Documents/Claude/Projects/terraform_folder_structure/.claude/hooks/pre-tool-use/validate.sh /mnt/f/Documents/Claude/Projects/terraform_folder_structure/.claude/hooks/post-tool-use/fmt.sh)",
+      "Bash(git init *)",
+      "Bash(git config *)",
+      "Bash(git branch *)",
+      "Bash(gh auth *)",
+      "Bash(gh repo *)",
+      "Bash(git push *)",
+      "Bash(python3 -c ' *)",
+      "Bash(git rm *)"
+    ]
+  }
+}
