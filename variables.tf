@@ -3,8 +3,8 @@ variable "org_name" {
   type        = string
 
   validation {
-    condition     = length(trimspace(var.org_name)) > 0
-    error_message = "org_name must not be empty or whitespace-only."
+    condition     = trimspace(var.org_name) == var.org_name && length(var.org_name) > 0
+    error_message = "org_name must not be empty or have leading/trailing whitespace."
   }
 }
 
@@ -23,8 +23,8 @@ variable "project" {
   type        = string
 
   validation {
-    condition     = length(trimspace(var.project)) > 0
-    error_message = "project must not be empty or whitespace-only."
+    condition     = trimspace(var.project) == var.project && length(var.project) > 0
+    error_message = "project must not be empty or have leading/trailing whitespace."
   }
 }
 
@@ -33,8 +33,8 @@ variable "team" {
   type        = string
 
   validation {
-    condition     = length(trimspace(var.team)) > 0
-    error_message = "team must not be empty or whitespace-only."
+    condition     = trimspace(var.team) == var.team && length(var.team) > 0
+    error_message = "team must not be empty or have leading/trailing whitespace."
   }
 }
 
@@ -43,37 +43,47 @@ variable "cost_center" {
   type        = string
 
   validation {
-    condition     = length(trimspace(var.cost_center)) > 0
-    error_message = "cost_center must not be empty or whitespace-only."
+    condition     = trimspace(var.cost_center) == var.cost_center && length(var.cost_center) > 0
+    error_message = "cost_center must not be empty or have leading/trailing whitespace."
   }
 }
 
 variable "managed_by" {
   description = "Value for the ManagedBy tag. Identifies the provisioning tool."
   type        = string
+  nullable    = false
   default     = "terraform"
+
+  validation {
+    condition     = trimspace(var.managed_by) == var.managed_by && length(var.managed_by) > 0
+    error_message = "managed_by must not be empty or have leading/trailing whitespace."
+  }
 }
 
 variable "org_tags" {
   description = "Organisation-wide base tags. Merged over the required schema. Right side wins on key collision."
   type        = map(string)
+  nullable    = false
   default     = {}
 }
 
 variable "team_tags" {
   description = "Team-level tags. Merged over org_tags. Right side wins on key collision."
   type        = map(string)
+  nullable    = false
   default     = {}
 }
 
 variable "resource_tags" {
   description = "Resource-specific tags. Merged over team_tags. Highest priority among the named levels."
   type        = map(string)
+  nullable    = false
   default     = {}
 }
 
 variable "additional_tags" {
   description = "Escape hatch for one-off tags that do not fit the hierarchy. Applied last — highest priority of all."
   type        = map(string)
+  nullable    = false
   default     = {}
 }
