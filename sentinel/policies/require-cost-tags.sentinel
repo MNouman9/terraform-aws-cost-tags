@@ -1,0 +1,47 @@
+# require-cost-tags.sentinel
+#
+# Enforces that every AWS resource being created or updated in the Terraform
+# plan carries all five required cost allocation tags. Resources that have
+# no `tags` attribute in the plan after-state are treated as non-compliant.
+#
+# Required tags: Environment, Project, Team, CostCenter, ManagedBy
+
+import "tfplan/v2" as tfplan
+import "strings"
+
+required_tags = [
+  "Environment",
+  "Project",
+  "Team",
+  "CostCenter",
+  "ManagedBy",
+]
+
+# Collect every AWS resource change that is a create or update action.
+aws_resource_changes = filter tfplan.resource_changes as _, rc {
+  strings.has_prefix(rc.type, "aws_") and
+  (rc.change.actions contains "create" or rc.change.actions contains "update")
+}
+
+# For each AWS resource, find any required tags that are absent.
+# A resource with no `tags` key at all is treated as having an empty tag map.
+violations = filter aws_resource_changes as addr, rc {
+  tags = rc.change.after.tags else {}
+  any required_tags as t {
+    not keys(tags) contains t
+  }
+}
+
+# Print each violation to make CI output actionable.
+print_violations = rule {
+  all violations as addr, rc {
+    tags    = rc.change.after.tags else {}
+    missing = filter required_tags as t { not keys(tags) contains t }
+    print("MISSING TAGS on", addr, "->", missing)
+  }
+}
+
+main = rule {
+  print_violations and
+  length(violations) is 0
+}
