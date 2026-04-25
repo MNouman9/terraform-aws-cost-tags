@@ -1,0 +1,21 @@
+# Terraform
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.backup
+*.tfplan
+tfplan.binary
+tfplan.json
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+
+# terraform-docs
+# (README.md is committed — do not ignore it)
+
+# OS
+.DS_Store
+Thumbs.db
