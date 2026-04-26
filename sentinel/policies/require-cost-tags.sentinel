@@ -26,18 +26,16 @@ aws_resource_changes = filter tfplan.resource_changes as _, rc {
 # For each AWS resource, find any required tags that are absent.
 # A resource with no `tags` key at all is treated as having an empty tag map.
 violations = filter aws_resource_changes as addr, rc {
-  tags = rc.change.after.tags else {}
   any required_tags as t {
-    not keys(tags) contains t
+    not (keys(rc.change.after.tags else {}) contains t)
   }
 }
 
 # Print each violation to make CI output actionable.
 print_violations = rule {
   all violations as addr, rc {
-    tags    = rc.change.after.tags else {}
-    missing = filter required_tags as t { not keys(tags) contains t }
-    print("MISSING TAGS on", addr, "->", missing)
+    print("MISSING TAGS on", addr, "->",
+      filter required_tags as t { not (keys(rc.change.after.tags else {}) contains t) })
   }
 }
 
