@@ -1,0 +1,207 @@
+formatter: "markdown table"
+
+version: ""
+
+header-from: main.tf
+footer-from: ""
+
+recursive:
+  enabled: false
+
+sections:
+  hide: []
+  show: []
+
+content: |-
+  # terraform-aws-cost-tags
+
+  A plug-and-play Terraform module for AWS that produces a standardised cost
+  allocation tag map with 3-level inheritance (org → team → resource).
+  It **provisions no AWS resources** — it only computes and outputs tag maps
+  for consumption by `default_tags` or individual resource `tags` blocks.
+
+  Ships with a Sentinel CLI policy (`hard-mandatory`) for local and CI
+  enforcement without requiring Terraform Cloud.
+
+  ## Usage
+
+  ### Via `default_tags` (recommended)
+
+  ```hcl
+  module "cost_tags" {
+    source  = "YOUR_ORG/cost-tags/aws"
+    version = "1.0.0"
+
+    org_name    = "acme"
+    environment = "prod"
+    project     = "payments"
+    team        = "platform-team"
+    cost_center = "eng-001"
+  }
+
+  provider "aws" {
+    region = var.aws_region
+    default_tags {
+      tags = module.cost_tags.tags
+    }
+  }
+  ```
+
+  All AWS resources in the configuration automatically receive the five required
+  tags without any per-resource `tags` block.
+
+  ### Per-resource override
+
+  ```hcl
+  resource "aws_lambda_function" "processor" {
+    # ...
+    tags = merge(module.cost_tags.tags, {
+      CostCenter = "data-pipeline"
+    })
+  }
+  ```
+
+  ### 3-level inheritance
+
+  ```hcl
+  module "cost_tags" {
+    source  = "YOUR_ORG/cost-tags/aws"
+    version = "1.0.0"
+
+    org_name    = "acme"
+    environment = "prod"
+    project     = "payments"
+    team        = "platform-team"
+    cost_center = "eng-001"
+
+    org_tags = {
+      ComplianceLabel = "sox-in-scope"
+    }
+
+    team_tags = {
+      Slack    = "#platform-alerts"
+      CostCode = "P-2024-Q2"
+    }
+
+    resource_tags = {
+      CostCenter = "data-pipeline"
+    }
+  }
+  ```
+
+  Merge priority (right side wins): `base_tags` → `org_tags` → `team_tags`
+  → `resource_tags` → `additional_tags`.
+
+  {{ .Inputs }}
+
+  {{ .Outputs }}
+
+  ## Sentinel Policy
+
+  A `hard-mandatory` Sentinel policy is included in `sentinel/`. It fails the
+  Terraform plan if any AWS resource being created or updated is missing one or
+  more of the five required tag keys.
+
+  ### Run locally
+
+  ```bash
+  terraform plan -out=tfplan.binary
+  terraform show -json tfplan.binary > tfplan.json
+  sentinel apply -config=sentinel/sentinel.hcl sentinel/policies/require-cost-tags.sentinel
+  ```
+
+  ### Unit tests (offline, no plan needed)
+
+  ```bash
+  sentinel test sentinel/policies/require-cost-tags.sentinel
+  ```
+
+  See [`sentinel/README.md`](sentinel/README.md) for full details.
+
+  ## Viewing Costs in the AWS Console
+
+  After applying your Terraform configuration, AWS Cost Explorer can break down
+  spend by any of the five tags. Follow the steps below.
+
+  ### Step 1 — Activate the tags as Cost Allocation Tags (one-time)
+
+  AWS must know which tag keys to track before they appear in billing reports.
+
+  1. Open **AWS Console → Billing → Cost Allocation Tags**.
+  2. Select the **User-defined** tab.
+  3. Find `Environment`, `Project`, `Team`, `CostCenter`, and `ManagedBy`.
+  4. Select all five and click **Activate**.
+
+  > Allow up to **24 hours** for AWS to begin attributing costs to newly
+  > activated tags.
+
+  ### Step 2 — Explore costs in Cost Explorer
+
+  1. Open **AWS Console → Billing → Cost Explorer**.
+  2. Under **Group by**, choose **Tag** and select the key you want
+     (e.g. `CostCenter`).
+  3. Set a date range and granularity (daily or monthly).
+  4. The chart shows spend per tag value — e.g. all costs attributed to
+     `Team = platform-team`.
+
+  ### Tag-based Budget Alerts (AWS Budgets)
+
+  1. Open **AWS Console → Billing → Budgets → Create Budget**.
+  2. Choose **Cost budget**.
+  3. Under **Filters**, select **Tag** and pick a key/value pair
+     (e.g. `CostCenter = eng-001`).
+  4. Set a monthly threshold and configure SNS or email notifications.
+
+  This lets each team own a budget alarm for their `CostCenter` value.
+
+  ### Cost and Usage Report (CUR) for Athena / QuickSight
+
+  For programmatic access or custom dashboards, enable a CUR in
+  **Billing → Cost and Usage Reports**. The report includes a column for each
+  activated tag key, which you can query with Athena or visualise in QuickSight.
+
+  ## Examples
+
+  - [`examples/minimal/`](examples/minimal/) — five required inputs + `default_tags`
+  - [`examples/complete/`](examples/complete/) — full 3-level inheritance with
+    per-resource override and a `Makefile` with `lint`, `validate`, `plan`,
+    `sentinel`, and `test` targets
+
+  ## Requirements
+
+  | Name | Version |
+  |---|---|
+  | terraform | >= 1.6.0 |
+
+  ## License
+
+  [Apache 2.0](LICENSE)
+
+output:
+  file: README.md
+  mode: replace
+  template: |-
+    {{ .Content }}
+
+output-values:
+  enabled: false
+  from: ""
+
+sort:
+  enabled: true
+  by: name
+
+settings:
+  anchor: true
+  color: true
+  default: true
+  description: true
+  escape: true
+  hide-empty: false
+  html: true
+  indent: 2
+  lockfile: true
+  read-comments: true
+  required: true
+  sensitive: true
+  type: true
