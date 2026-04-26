@@ -1,0 +1,64 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+
+jobs:
+  release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract version
+        id: version
+        run: echo "tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+
+      - name: Extract CHANGELOG section for this release
+        id: notes
+        run: |
+          VERSION="${{ steps.version.outputs.tag }}"
+          # Strip the leading 'v' to match CHANGELOG headings like [1.0.0]
+          SEMVER="${VERSION#v}"
+          # Pull the block between this version's heading and the next one
+          awk "/^## \[${SEMVER}\]/{found=1; next} found && /^## \[/{exit} found{print}" \
+            CHANGELOG.md > release-notes.md
+          echo "Release notes:"
+          cat release-notes.md
+
+      - name: Run CI checks before releasing
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "~1.9"
+
+      - name: Verify format
+        run: terraform fmt -check -recursive
+
+      - name: Validate root module
+        run: terraform init -backend=false && terraform validate
+
+      - name: Install Sentinel CLI
+        env:
+          SENTINEL_VERSION: "0.40.0"
+        run: |
+          curl -fsSLo sentinel.zip \
+            "https://releases.hashicorp.com/sentinel/${SENTINEL_VERSION}/sentinel_${SENTINEL_VERSION}_linux_amd64.zip"
+          unzip -q sentinel.zip
+          sudo install -m 0755 sentinel /usr/local/bin/sentinel
+
+      - name: Verify Sentinel tests pass
+        run: sentinel test sentinel/policies/require-cost-tags.sentinel
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: ${{ steps.version.outputs.tag }}
+          body_path: release-notes.md
+          draft: false
+          prerelease: ${{ contains(steps.version.outputs.tag, '-') }}

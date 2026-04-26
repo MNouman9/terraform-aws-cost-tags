@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  format:
+    name: Terraform Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "~1.9"
+
+      - name: Check formatting
+        run: terraform fmt -check -recursive
+
+  validate:
+    name: Terraform Validate
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        dir:
+          - "."
+          - "examples/minimal"
+          - "examples/complete"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "~1.9"
+
+      - name: Init (${{ matrix.dir }})
+        run: terraform -chdir=${{ matrix.dir }} init -backend=false
+
+      - name: Validate (${{ matrix.dir }})
+        run: terraform -chdir=${{ matrix.dir }} validate
+
+  sentinel:
+    name: Sentinel Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Sentinel CLI
+        env:
+          SENTINEL_VERSION: "0.40.0"
+        run: |
+          curl -fsSLo sentinel.zip \
+            "https://releases.hashicorp.com/sentinel/${SENTINEL_VERSION}/sentinel_${SENTINEL_VERSION}_linux_amd64.zip"
+          unzip -q sentinel.zip
+          sudo install -m 0755 sentinel /usr/local/bin/sentinel
+          sentinel version
+
+      - name: Run Sentinel unit tests
+        run: sentinel test sentinel/policies/require-cost-tags.sentinel
